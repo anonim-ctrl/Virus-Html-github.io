@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>!! SYSTEM ALERT !!</title>
+  <style>
+    :root{--bg:#0b0b0f;--red:#ff3b3b;--muted:#c9c9c9}
+    html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    .screen{
+      height:100%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, transparent 40%), linear-gradient(180deg,#07070a 0%, #0f0f14 100%);
+      display:flex;align-items:center;justify-content:center;color:var(--muted);
+    }
+    .card{
+      width:92%;max-width:900px;padding:28px;border-radius:12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 -6px 30px rgba(255,0,0,0.02);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+      text-align:center;
+    }
+    h1{margin:0 0 8px;font-size:2.2rem;color:var(--red);letter-spacing:1px}
+    p{margin:0 0 18px;color:var(--muted);opacity:0.95}
+    .details{font-family:monospace;background:rgba(0,0,0,0.25);padding:12px;border-radius:8px;margin:12px 0;color:#f1f1f1;overflow:auto;max-height:140px}
+    .btns{display:flex;gap:10px;justify-content:center;margin-top:14px}
+    button{padding:10px 16px;border-radius:8px;border:0;font-weight:600;cursor:pointer}
+    .stop{background:#2ecc71;color:#022;box-shadow:0 6px 18px rgba(46,204,113,0.14)}
+    .scare{background:var(--red);color:#fff;box-shadow:0 6px 18px rgba(255,59,59,0.18)}
+    .small{font-size:0.9rem;color:#ddd;margin-top:8px}
+    /* flashing text */
+    @keyframes pulse {
+      0%{text-shadow:0 0 2px rgba(255,59,59,0.6)}
+      50%{text-shadow:0 0 18px rgba(255,59,59,0.95)}
+      100%{text-shadow:0 0 2px rgba(255,59,59,0.6)}
+    }
+    .pulse{animation:pulse 1.2s infinite}
+    /* full-screen scary background when triggered */
+    .scary-bg{
+      position:fixed;inset:0;background:linear-gradient(90deg, rgba(120,0,0,0.85), rgba(40,0,0,0.85));
+      z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;
+    }
+    .scary-bg h2{font-size:3rem;margin:0 0 8px}
+    .scary-bg p{opacity:0.95}
+  </style>
+</head>
+<body>
+  <div class="screen" id="mainScreen">
+    <div class="card" role="dialog" aria-labelledby="alertTitle" aria-describedby="alertDesc">
+      <h1 id="alertTitle" class="pulse">SYSTEM SECURITY ALERT</h1>
+      <p id="alertDesc">Warning: Suspicious activity detected. Multiple system files flagged. Immediate action required.</p>
+
+      <div class="details" id="logBox">
+`Scanning drives...  
+C:\Windows\System32\svchost.exe — suspicious  
+C:\Users\User\Downloads\unknown_app.exe — isolated  
+C:\Program Files\Common Files — analysis in progress  
+...`</div>
+
+      <div class="btns">
+        <button class="stop" id="stopBtn">Hentikan</button>
+        <button class="scare" id="fullScareBtn">Jangan Tekan</button>
+      </div>
+      <div class="small">Creator By Rufus [ルーファス].</div>
+    </div>
+  </div>
+
+  <div id="scary" style="display:none" class="scary-bg" role="alert" aria-hidden="true">
+    <h2>!! CRITICAL ERROR !!</h2>
+    <p>System integrity compromised. Reboot immediately.</p>
+    <button onclick="endScare()" style="margin-top:18px;padding:10px 16px;border-radius:8px;border:0;font-weight:700;cursor:pointer;">Tutup</button>
+  </div>
+
+  <audio id="beep" src="" preload="auto"></audio>
+
+  <script>
+    const stopBtn = document.getElementById('stopBtn');
+    const fullScareBtn = document.getElementById('fullScareBtn');
+    const scary = document.getElementById('scary');
+    const logBox = document.getElementById('logBox');
+
+    // harmless "scan" log generator
+    let scanIndex = 0;
+    const fpakeItems = [
+      "C:\\Windows\\System32\\kernel32.dll — OK",
+      "C:\\Windows\\explorer.exe — OK",
+      "C:\\Users\\User\\Downloads\\weird_tool.exe — flagged",
+      "C:\\Program Files\\App\\module.js — suspicious",
+      "C:\\Users\\User\\Pictures\\vacation.jpg — OK",
+      "ExternalDrive\\secret.zip — encrypted",
+      "C:\\Temp\\random.bin — quarantined"
+    ];
+
+    const scanInterval = setInterval(()=>{
+      logBox.textContent += "\n" + fakeItems[scanIndex % fakeItems.length];
+      logBox.scrollTop = logBox.scrollHeight;
+      scanIndex++;
+      if(scanIndex>12) clearInterval(scanInterval);
+    }, 700);
+
+    // show full-screen scary overlay (harmless)
+    fullScareBtn.addEventListener('click', ()=>{
+      scary.style.display = 'flex';
+      scary.setAttribute('aria-hidden','false');
+      // attempt brief beep using WebAudio (no file needed)
+      try {
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.value = 220;
+        g.gain.value = 0.06;
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        setTimeout(()=>{ o.stop(); ctx.close(); }, 1000000000);
+      } catch(e){ /* ignore if blocked */ }
+    });
+
+    function endScare(){
+      scary.style.display='none';
+      scary.setAttribute('aria-hidden','true');
+    }
+
+    // stop prank: remove elements / stop intervals
+    stopBtn.addEventListener('click', ()=>{
+      clearInterval(scanInterval);
+      document.getElementById('mainScreen').innerHTML = '<div style="text-align:center;color:#ff0000"><h2>Warning</h2><p>ponsel anda akan mati dalam 1menit lagi</p></div>';
+    });
+
+    // also stop if user presses Escape
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        endScare();
+        stopBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
